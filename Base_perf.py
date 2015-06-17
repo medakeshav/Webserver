@@ -3,7 +3,7 @@
 
 #from socket import *
 import time
-#import urllib
+import urllib
 #import urllib2
 #import requests
 from threading import Thread
@@ -24,7 +24,7 @@ def monitor():
 		n = 0
 Thread(target=monitor).start()
 while True:
-	#urllib.urlopen(url).read()
+	urllib.urlopen(url)
 	#urllib2.urlopen(url).read()
 	#sock.send('GET /')
 	#sock.recv(100)

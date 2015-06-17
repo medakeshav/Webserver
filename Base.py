@@ -1,17 +1,12 @@
-from BaseHTTPServer import BaseHTTPRequestHandler
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import urlparse
-from threading import Thread
-
-global resp
-#resp =  open("./Login/index.html", "r+").read()
-#resp =  open("./Login/city.jpg", "r+").read()
+import threading
+from SocketServer import ThreadingMixIn
 
 class GetHandler(BaseHTTPRequestHandler):
-	
 	def do_GET(self):
 		parsed_path = urlparse.urlparse(self.path)
-		print self.headers
-		print self.command
+		#print self.headers, self.path, self.command
 
 		message_parts = [
 			'CLIENT VALUES:',
@@ -30,77 +25,85 @@ class GetHandler(BaseHTTPRequestHandler):
 			'',
 			'HEADERS RECEIVED:',
 			]
-		for name, value in sorted(self.headers.items()):
-			message_parts.append('%s=%s' % (name, value.rstrip()))
-		message_parts.append('')
-		message = '\r\n'.join(message_parts)
-		#self.send_response(200)
+
+		self.send_response(200)
 		self.end_headers()
-		#self.wfile.write(message)
-		#resp =  open("./Login/index.html", "r+").read()
-		#resp =  open("./Login/city.jpg", "r+").read()
-		#self.wfile.write(resp)
 
-		if self.path =="/" or self.path == "/Login/index.html":
-			Login  = open("./Login/index.html", "r+").read()
-			self.wfile.write(Login)
+		if self.command == 'GET':
+				if self.path =="/" or self.path == "/Login/index.html" or self.path == '/Login':
+					Login  = open("./Login/index.html", "r+").read()
+					self.wfile.write(Login)
 
-		elif 'city' in self.path:
-			img  = open("./Login/city1.jpg", "r").read()
-			self.wfile.write(img)
+				elif self.path == '/city1.jpg':
+					img  = open("./Login/city1.jpg", "r+").read()
+					self.wfile.write(img)
 
-		elif 'myform' in self.path:
-			form_str = parsed_path.query
-			username = form_str.split("=")[1].split("&")[0]
-			password = form_str.split("=")[2]
-			print (username,password)
-	
+				elif self.path == '/favicon.ico':
+					pass
+					
+				else:
+					Show  = open("./Login/"+self.path, "r+").read()
+					self.wfile.write(Show)
+		print "Active Threads: "+str(threading.active_count())
+		print "Current Thread: "+str(threading.current_thread())
+		print "List of Threads:"+str(threading.enumerate())
+
+
+	def do_POST(self):
+		if self.command == 'POST':
+			length = int(self.headers['Content-Length'])
+			post_data = urlparse.parse_qs(self.rfile.read(length).decode('utf-8'))
+			username =  str(post_data['user'][0])
+			password =  str(post_data['password'][0])
+
 			make = """<html>
-  <head>
-    <meta charset="UTF-8">
+		  <head>
+		    <meta charset="UTF-8">
 
 
-    <title>Signin</title>
-    
-    
-       
-    
-        <script src="js/prefixfree.min.js"></script>
+		    <title>Signin</title>
+		    
+		    
+		       
+		    
+		        <script src="js/prefixfree.min.js"></script>
 
-    <link rel="stylesheet" href="Login/css/flow.css">
-  </head>
+		    <link rel="stylesheet" href="css/flow.css">
+		  </head>
 
-  <body background= "city.jpg">
+		  <body background= "/city.jpg">
 
-    <div class="body"></div>
-		<div class="grad"></div>
-		<div class="header">
-			<div>Welcome<span>Login</span></div><br>
-			<div>Hi %s , welcome your account has been hacked
-			Your password is %s </div>
-		</div>
-		<br>
+		    <div class="body"></div>
+				<div class="grad"></div>
+				<div class="header">
+					<div>Welcome<span>Login</span></div><br>
+					<div>Hi %s , welcome your account has been hacked
+					Your password is %s </div>
+				</div>
+				<br>
 
-	
-		
-    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
-  </body>
-</html> """	 % (username, password)
+			
+				
+		    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+		  </body>
+		</html> """	 % (username, password)
 
 			self.wfile.write(make)
 
-			
-		else:
-			Show  = open("."+self.path, "r+").read()
-			self.wfile.write(Show)
-		
+			self.send_response(200)
+			self.send_header("Content-type", "text/html")
+			self.end_headers()
+			print "Active Threads: "+str(threading.active_count())
+			print "Current Thread: "+str(threading.current_thread())
+			print "List of Threads:"+str(threading.enumerate())
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
 
 if __name__ == '__main__':
-    from BaseHTTPServer import HTTPServer
-    try:
-    	Thread(target=GetHandler).start()
-    except TypeError:
-    	pass
-    server = HTTPServer(('localhost', 8080), GetHandler)
-    print ('Starting server, use <Ctrl-C> to stop')	
-    server.serve_forever()
+	print "Active Threads: "+str(threading.active_count())
+	print "Current Thread: "+str(threading.current_thread())
+	print "List of Threads:"+str(threading.enumerate())
+	server = ThreadedHTTPServer(('localhost', 8080), GetHandler)
+	print ('Starting server, use <Ctrl-C> to stop')	
+	server.serve_forever()
