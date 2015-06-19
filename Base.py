@@ -3,7 +3,8 @@ import urlparse
 import threading
 from SocketServer import ThreadingMixIn
 class GetHandler(BaseHTTPRequestHandler):
-	
+
+		#Supplying Header information
 	def Heders(self):
 		parsed_path = urlparse.urlparse(self.path)
 		message_parts = [
@@ -25,7 +26,7 @@ class GetHandler(BaseHTTPRequestHandler):
 			]
 		print message_parts, self.headers
 	
-			"""GET"""
+			#GET Request
 	def do_GET(self):
 		if self.command == 'GET':
 				if self.path =="/" or self.path == "/Login/index" or self.path == '/Login':
@@ -47,7 +48,7 @@ class GetHandler(BaseHTTPRequestHandler):
 		print "Current Thread: "+str(threading.current_thread())
 		print "List of Threads:"+str(threading.enumerate())
 
-			"""Post"""
+			#POST Request
 	def do_POST(self):
 		if self.command == 'POST':
 			if self.path == "/myform":
@@ -59,7 +60,7 @@ class GetHandler(BaseHTTPRequestHandler):
 				print "Current Thread: "+str(threading.current_thread())
 				print "List of Threads:"+str(threading.enumerate())
 
-			"""For Dynamic Pages"""
+			#Dynamic Pages
 	def Login(self):
 		Login  = open("./Login/index.html", "r+").read()
 		self.wfile.write(Login)
@@ -73,16 +74,15 @@ class GetHandler(BaseHTTPRequestHandler):
 		Form = Form % (username,password)
 		self.wfile.write(Form)
 
-		"""Threading"""
-
+			#Threading
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
 
-    	"""Serve"""
+    		#Serve
 if __name__ == '__main__':
 	print "Active Threads: "+str(threading.active_count())
 	print "Current Thread: "+str(threading.current_thread())
 	print "List of Threads:"+str(threading.enumerate())
 	server = ThreadedHTTPServer(('localhost', 8080), GetHandler)
-	print ('Starting server, use <Ctrl-C> to stop')	
+	print ('Starting server, use <Ctrl-Z> to stop')	
 	server.serve_forever()
