@@ -2,12 +2,10 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import urlparse
 import threading
 from SocketServer import ThreadingMixIn
-
 class GetHandler(BaseHTTPRequestHandler):
-	def do_GET(self):
+	
+	def Heders(self):
 		parsed_path = urlparse.urlparse(self.path)
-		#print self.headers, self.path, self.command
-
 		message_parts = [
 			'CLIENT VALUES:',
 			'client_address=%s (%s)' % (self.client_address,
@@ -25,14 +23,13 @@ class GetHandler(BaseHTTPRequestHandler):
 			'',
 			'HEADERS RECEIVED:',
 			]
-
-		self.send_response(200)
-		self.end_headers()
-
+		print message_parts, self.headers
+	
+			"""GET"""
+	def do_GET(self):
 		if self.command == 'GET':
-				if self.path =="/" or self.path == "/Login/index.html" or self.path == '/Login':
-					Login  = open("./Login/index.html", "r+").read()
-					self.wfile.write(Login)
+				if self.path =="/" or self.path == "/Login/index" or self.path == '/Login':
+					Login()
 
 				elif self.path == '/city1.jpg':
 					img  = open("./Login/city1.jpg", "r+").read()
@@ -44,62 +41,41 @@ class GetHandler(BaseHTTPRequestHandler):
 				else:
 					Show  = open("./Login/"+self.path, "r+").read()
 					self.wfile.write(Show)
+		self.send_response(200)
+		self.end_headers()
 		print "Active Threads: "+str(threading.active_count())
 		print "Current Thread: "+str(threading.current_thread())
 		print "List of Threads:"+str(threading.enumerate())
 
-
+			"""Post"""
 	def do_POST(self):
 		if self.command == 'POST':
-			length = int(self.headers['Content-Length'])
-			post_data = urlparse.parse_qs(self.rfile.read(length).decode('utf-8'))
-			username =  str(post_data['user'][0])
-			password =  str(post_data['password'][0])
+			if self.path == "/myform":
+				Form()
+				self.send_response(200)
+				self.send_header("Content-type", "text/html")
+				self.end_headers()
+				print "Active Threads: "+str(threading.active_count())
+				print "Current Thread: "+str(threading.current_thread())
+				print "List of Threads:"+str(threading.enumerate())
 
-			make = """<html>
-		  <head>
-		    <meta charset="UTF-8">
+"""For Dynamic Pages"""
+	def Login(self):
+		Login  = open("./Login/index.html", "r+").read()
+		self.wfile.write(Login)
 
-
-		    <title>Signin</title>
-		    
-		    
-		       
-		    
-		        <script src="js/prefixfree.min.js"></script>
-
-		    <link rel="stylesheet" href="css/flow.css">
-		  </head>
-
-		  <body background= "/city.jpg">
-
-		    <div class="body"></div>
-				<div class="grad"></div>
-				<div class="header">
-					<div>Welcome<span>Login</span></div><br>
-					<div>Hi %s , welcome your account has been hacked
-					Your password is %s </div>
-				</div>
-				<br>
-
-			
-				
-		    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
-		  </body>
-		</html> """	 % (username, password)
-
-			self.wfile.write(make)
-
-			self.send_response(200)
-			self.send_header("Content-type", "text/html")
-			self.end_headers()
-			print "Active Threads: "+str(threading.active_count())
-			print "Current Thread: "+str(threading.current_thread())
-			print "List of Threads:"+str(threading.enumerate())
+	def From(self):
+		length = int(self.headers['Content-Length'])
+		post_data = urlparse.parse_qs(self.rfile.read(length).decode('utf-8'))
+		username =  str(post_data['user'][0])
+		password =  str(post_data['password'][0])
+		From  = open("./Login/form.html", "r+").read()
+		Form = Form % (username,password)
+		self.wfile.write(Form)
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
-
+print thread_count
 if __name__ == '__main__':
 	print "Active Threads: "+str(threading.active_count())
 	print "Current Thread: "+str(threading.current_thread())
