@@ -59,7 +59,7 @@ class GetHandler(BaseHTTPRequestHandler):
 				print "Current Thread: "+str(threading.current_thread())
 				print "List of Threads:"+str(threading.enumerate())
 
-"""For Dynamic Pages"""
+			"""For Dynamic Pages"""
 	def Login(self):
 		Login  = open("./Login/index.html", "r+").read()
 		self.wfile.write(Login)
@@ -73,9 +73,12 @@ class GetHandler(BaseHTTPRequestHandler):
 		Form = Form % (username,password)
 		self.wfile.write(Form)
 
+		"""Threading"""
+
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
-print thread_count
+
+    	"""Serve"""
 if __name__ == '__main__':
 	print "Active Threads: "+str(threading.active_count())
 	print "Current Thread: "+str(threading.current_thread())
