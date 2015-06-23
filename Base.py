@@ -11,7 +11,7 @@ def Form(self):
 	length = int(self.headers['Content-Length'])
 	post_data = urlparse.parse_qs(self.rfile.read(length).decode('utf-8'))
 	username =  str(post_data['user'][0])
-	password =  str(post_data['password'][0])
+	password =  str(post_data['password'][0])	
 	Form  = open("./views/form.html", "r+").read()
 	Form = Form % (username,password)
 	self.wfile.write(Form)
