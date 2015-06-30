@@ -2,6 +2,12 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import urlparse
 import threading
 from SocketServer import ThreadingMixIn
+# import gevent
+# from gevent import *
+# from greenlet import *
+from Downld import *
+
+
 
 def Login(self):
 	filepath  = open("./public/login/index.html", "r+").read()
@@ -13,12 +19,24 @@ def Form(self):
 	username =  str(post_data['user'][0])
 	password =  str(post_data['password'][0])	
 	Form  = open("./views/form.html", "r+").read()
-	Form = Form % (username,password)
+	Form = Form % (username)
 	self.wfile.write(Form)
 
+def file_dl(self):
+	length = int(self.headers['Content-Length'])
+	txt = str(self.rfile.read(length).decode("ascii", "ignore"))
+	fp =open('./sample.txt','w+')
+	fp.write(txt)
+	fp.close()
+	self.send_response(200)
+	#self.send_header('Content-Type', 'audio/mpeg')
+	downld(self,txt)
+
+	
 def public(self):
 	try:
-		public = open("./public/"+self.path, "r+").read()
+		print self.path
+		public = open("./public"+self.path, "r+").read()
 		self.wfile.write(public)
 	except IOError:
 		self.wfile.write("Sorry This page does not exist")
@@ -30,7 +48,8 @@ Routes = {
 	"/login" : Login,
 	"/login/" : Login,
 	"/login/index" : Login,
-	"/login/index.html" : Login
+	"/login/index.html" : Login,
+	"/upload" : file_dl
 	}
 
 
@@ -78,17 +97,18 @@ class GetHandler(BaseHTTPRequestHandler):
 			#POST Request
 	def do_POST(self):
 		if self.command == 'POST':
-				try:
+				#try:
+					#print self.path, self.headers
 					Routes[self.path](self)
-				except KeyError:
-					self.wfile.write("Sorry This page does not exist")
+				#except KeyError:
+				#	self.wfile.write("Sorry This page does not exist")
 
-				self.send_response(200)
-				self.send_header("Content-type", "text/html")
-				self.end_headers()
-				print "Active Threads: "+str(threading.active_count())
-				print "Current Thread: "+str(threading.current_thread())
-				print "List of Threads:"+str(threading.enumerate())
+		self.send_response(200)
+		#self.send_header("Content-type", "text/html")
+		self.end_headers()
+		print "Active Threads: "+str(threading.active_count())
+		print "Current Thread: "+str(threading.current_thread())
+		print "List of Threads:"+str(threading.enumerate())
 
 
 	
@@ -103,6 +123,7 @@ if __name__ == '__main__':
 	print "Active Threads: "+str(threading.active_count())
 	print "Current Thread: "+str(threading.current_thread())
 	print "List of Threads:"+str(threading.enumerate())
+	#pool = gevent.pool.Pool(1000)
 	server = ThreadedHTTPServer(('localhost', 8080), GetHandler)
 	print ('Starting server, use <Ctrl-Z> to stop')	
 	server.serve_forever()
