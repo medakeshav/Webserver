@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 import subprocess
 import time
-import youtube_dl
+from youtube_dl import YoutubeDL as ydl
+from threading import Thread
+import threading
+from multiprocessing import Process
 
 ydl_opts = {
 	'format': 'best',
@@ -19,9 +22,25 @@ ydl_opts = {
 	}]
 }
 
+def video_download(handler,v,videos):
+	
+	#handler.lock = threading.Lock()
+	handler.send_header('Content-Disposition', 'attachment; filename=%s.mp3' % videos[v])
+	try:
+		ydl_opts['format'] = 'mp4'
+		ydl(ydl_opts).download([v])
+	except:
+		ydl_opts['format'] = 'best'
+		ydl(ydl_opts).download([v])		
+	
+	mp3  = open('./'+v+'.mp3', "r+").read()
+	#handler.lock.acquire()
+	handler.wfile.write(mp3)
+	handler.end_headers()
+	#handler.lock.release()
 
 
-def downld(self,txt):
+def downld(handler,txt):
 
 	videos = {}
 	len = 0
@@ -45,17 +64,22 @@ def downld(self,txt):
 			out, err = value.communicate()
 			videos[key] = out.strip().decode('ascii','ignore')
 			print key
+
 	print videos
+	if videos == '':
+		#Msg_box = 
+		#handler.wfile.write(Msg_box)
+		exit(0)
 
-
+	
 	for v in videos:
-		with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-			for v in videos:
-				self.send_header('Content-Disposition', 'attachment; filename=%s.mp3' % videos[v])
-				self.end_headers()
-				ydl.download([v])
-				mp3  = open('./'+v+'.mp3', "r+").read()
-				self.wfile.write(mp3)
+
+		p=Process(target=video_download, args=(handler,v,videos))
+		p.start()
+		p.join()
+
+
+
 
 
 

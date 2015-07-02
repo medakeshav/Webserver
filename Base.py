@@ -1,7 +1,7 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer 
 import urlparse
 import threading
-from SocketServer import ThreadingMixIn
+from SocketServer import ThreadingMixIn, ForkingMixIn
 # import gevent
 # from gevent import *
 # from greenlet import *
@@ -9,37 +9,41 @@ from Downld import *
 
 
 
-def Login(self):
+def Login(handler):	
 	filepath  = open("./public/login/index.html", "r+").read()
-	self.wfile.write(filepath)
+	handler.wfile.write(filepath)
 
-def Form(self):
-	length = int(self.headers['Content-Length'])
-	post_data = urlparse.parse_qs(self.rfile.read(length).decode('utf-8'))
+def Form(handler):
+	length = int(handler.headers['Content-Length'])
+	post_data = urlparse.parse_qs(handler.rfile.read(length).decode('utf-8'))
 	username =  str(post_data['user'][0])
 	password =  str(post_data['password'][0])	
 	Form  = open("./views/form.html", "r+").read()
 	Form = Form % (username)
-	self.wfile.write(Form)
+	handler.wfile.write(Form)
 
-def file_dl(self):
-	length = int(self.headers['Content-Length'])
-	txt = str(self.rfile.read(length).decode("ascii", "ignore"))
+def file_dl(handler):
+	length = int(handler.headers['Content-Length'])
+	txt = str(handler.rfile.read(length).decode("ascii", "ignore"))
 	fp =open('./sample.txt','w+')
 	fp.write(txt)
 	fp.close()
-	self.send_response(200)
-	#self.send_header('Content-Type', 'audio/mpeg')
-	downld(self,txt)
+	#handler.send_response(200)
+	print txt
+	downld(handler,txt)
+
 
 	
-def public(self):
+def public(handler):
 	try:
-		print self.path
-		public = open("./public"+self.path, "r+").read()
-		self.wfile.write(public)
+		print handler.path
+		public = open("./public"+handler.path, "r+").read()
+		handler.wfile.write(public)
 	except IOError:
-		self.wfile.write("Sorry This page does not exist")
+		handler.wfile.write("Sorry This page does not exist")
+	handler.send_header("Content-type", "text/html")
+
+
 
 
 Routes = {
@@ -49,7 +53,8 @@ Routes = {
 	"/login/" : Login,
 	"/login/index" : Login,
 	"/login/index.html" : Login,
-	"/upload" : file_dl
+	"/upload" : file_dl,
+	"/url": file_dl
 	}
 
 
@@ -83,13 +88,12 @@ class GetHandler(BaseHTTPRequestHandler):
 			#GET Request
 	def do_GET(self):
 		if self.command == 'GET':
-				try:
-					Routes[self.path](self)
-				except KeyError:
-					public(self)
-
-		self.send_response(200)
-		self.end_headers()
+			try:
+				Routes[self.path](self)
+			except KeyError:
+				public(self)
+			self.send_response(200)
+			self.end_headers()
 		print "Active Threads: "+str(threading.active_count())
 		print "Current Thread: "+str(threading.current_thread())
 		print "List of Threads:"+str(threading.enumerate())
@@ -97,23 +101,16 @@ class GetHandler(BaseHTTPRequestHandler):
 			#POST Request
 	def do_POST(self):
 		if self.command == 'POST':
-				#try:
-					#print self.path, self.headers
-					Routes[self.path](self)
-				#except KeyError:
-				#	self.wfile.write("Sorry This page does not exist")
-
-		self.send_response(200)
-		#self.send_header("Content-type", "text/html")
-		self.end_headers()
+			try:
+				Routes[self.path](self)
+			except KeyError:
+				public(self)
+			self.send_response(200)
+			self.end_headers()
 		print "Active Threads: "+str(threading.active_count())
 		print "Current Thread: "+str(threading.current_thread())
 		print "List of Threads:"+str(threading.enumerate())
-
-
 	
-
-
 			#Threading
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
