@@ -1,9 +1,9 @@
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 import subprocess
-import time
+#import time
 from youtube_dl import YoutubeDL as ydl
-from threading import Thread
-import threading
+#from threading import Thread
+#import threading
 from multiprocessing import Process
 
 ydl_opts = {
@@ -25,7 +25,7 @@ ydl_opts = {
 def video_download(handler,v,videos):
 	
 	#handler.lock = threading.Lock()
-	handler.send_header('Content-Disposition', 'attachment; filename=%s.mp3' % videos[v])
+	
 	try:
 		ydl_opts['format'] = 'mp4'
 		ydl(ydl_opts).download([v])
@@ -35,6 +35,7 @@ def video_download(handler,v,videos):
 	
 	mp3  = open('./'+v+'.mp3', "r+").read()
 	#handler.lock.acquire()
+	handler.send_header('Content-Disposition', 'attachment; filename=%s.mp3' % videos[v])
 	handler.wfile.write(mp3)
 	handler.end_headers()
 	#handler.lock.release()
@@ -73,10 +74,10 @@ def downld(handler,txt):
 
 	
 	for v in videos:
-
+		global p
 		p=Process(target=video_download, args=(handler,v,videos))
 		p.start()
-		p.join()
+		
 
 
 
