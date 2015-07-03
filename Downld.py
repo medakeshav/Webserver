@@ -1,9 +1,10 @@
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 import subprocess
 #import time
 from youtube_dl import YoutubeDL as ydl
-#from threading import Thread
-#import threading
+import zipfile
+from threading import Thread
+import threading
 from multiprocessing import Process
 
 ydl_opts = {
@@ -22,24 +23,29 @@ ydl_opts = {
 	}]
 }
 
+def zipping_file(videos):
+	 
+	# loop through all the folders to zip
+	z = zipfile.ZipFile("Music_File.zip", "w")
+	for v in videos:
+	    print("processing: " + videos[v])
+	    z.write(v+".mp3")
+	z.close()
+	z = zipfile.ZipFile("Music_File.zip")
+	z.printdir()
+
+
+
 def video_download(handler,v,videos):
-	
-	#handler.lock = threading.Lock()
 	
 	try:
 		ydl_opts['format'] = 'mp4'
 		ydl(ydl_opts).download([v])
 	except:
-		ydl_opts['format'] = 'best'
-		ydl(ydl_opts).download([v])		
-	
-	mp3  = open('./'+v+'.mp3', "r+").read()
-	#handler.lock.acquire()
-	handler.send_header('Content-Disposition', 'attachment; filename=%s.mp3' % videos[v])
-	handler.wfile.write(mp3)
-	handler.end_headers()
-	#handler.lock.release()
+		ydl(ydl_opts).download([v])
 
+
+	
 
 def downld(handler,txt):
 
@@ -74,15 +80,22 @@ def downld(handler,txt):
 
 	
 	for v in videos:
-		global p
-		p=Process(target=video_download, args=(handler,v,videos))
-		p.start()
+		#global t
+		v = Thread(target=video_download, args=(handler,v,videos))
+		v.start()
+	v.join()
 		
 
+	zipping_file(videos)
+	
+	mp3  = open('Music_File.zip', "r+")
+	handler.send_response(200)
+	handler.send_header('Content-Type', 'application/octet-stream')
+	handler.send_header('Content-Disposition', 'attachment; filename=Music_File.zip')
+	handler.end_headers()
 
-
-
-
+	handler.wfile.write(mp3.read())
+	mp3.close()
 
 
 
