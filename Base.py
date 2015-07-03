@@ -2,9 +2,6 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import urlparse
 import threading
 from SocketServer import ThreadingMixIn, ForkingMixIn
-# import gevent
-# from gevent import *
-# from greenlet import *
 from Downld import *
 
 
@@ -28,12 +25,9 @@ def file_dl(handler):
 	fp =open('./sample.txt','w+')
 	fp.write(txt)
 	fp.close()
-	#handler.send_response(200)
-	print txt
 	downld(handler,txt)
 
 
-	
 def public(handler):
 	try:
 		print handler.path
@@ -42,9 +36,6 @@ def public(handler):
 	except IOError:
 		handler.wfile.write("Sorry This page does not exist")
 	handler.send_header("Content-type", "text/html")
-
-
-
 
 Routes = {
 	"/" : Login,
@@ -56,9 +47,6 @@ Routes = {
 	"/upload" : file_dl,
 	"/url": file_dl
 	}
-
-
-
 
 class GetHandler(BaseHTTPRequestHandler):
 
@@ -94,9 +82,7 @@ class GetHandler(BaseHTTPRequestHandler):
 				public(self)
 			self.send_response(200)
 			self.end_headers()
-		print "Active Threads: "+str(threading.active_count())
-		print "Current Thread: "+str(threading.current_thread())
-		print "List of Threads:"+str(threading.enumerate())
+		Thread_status()
 
 			#POST Request
 	def do_POST(self):
@@ -107,10 +93,13 @@ class GetHandler(BaseHTTPRequestHandler):
 				public(self)
 			self.send_response(200)
 			self.end_headers()
+			Thread_status()
+	
+	def Thread_status(self):
 		print "Active Threads: "+str(threading.active_count())
 		print "Current Thread: "+str(threading.current_thread())
 		print "List of Threads:"+str(threading.enumerate())
-	
+
 			#Threading
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
@@ -120,7 +109,6 @@ if __name__ == '__main__':
 	print "Active Threads: "+str(threading.active_count())
 	print "Current Thread: "+str(threading.current_thread())
 	print "List of Threads:"+str(threading.enumerate())
-	#pool = gevent.pool.Pool(1000)
-	server = ThreadedHTTPServer(('localhost', 8080), GetHandler)
+	server = ThreadedHTTPServer(('0.0.0.0', 8080), GetHandler)
 	print ('Starting server, use <Ctrl-Z> to stop')	
 	server.serve_forever()

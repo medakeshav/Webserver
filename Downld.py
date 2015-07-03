@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
 import subprocess
-#import time
 from youtube_dl import YoutubeDL as ydl
 import zipfile
 from threading import Thread
-import threading
-from multiprocessing import Process
 
 ydl_opts = {
 	'format': 'best',
@@ -15,7 +12,6 @@ ydl_opts = {
 	'restrictfilenames': True,
 	#'writethumbnail': True,
 	'outtmpl': '%(id)s.%(ext)s',
-
 	'postprocessors': [{
 	'key': 'FFmpegExtractAudio',
 	'preferredcodec': 'mp3',
@@ -45,8 +41,6 @@ def video_download(handler,v,videos):
 		ydl(ydl_opts).download([v])
 
 
-	
-
 def downld(handler,txt):
 
 	videos = {}
@@ -59,10 +53,7 @@ def downld(handler,txt):
 	    	out, err = value.communicate()
 	    	videos[key] = out.strip().decode('ascii','ignore')
 	    	print key
-	    	
-
 	len = 0
-
 	while txt.find('youtu.be',len) != -1:
 	    len = txt.find('youtu.be',len+1)+8
 	    if txt[len:len+1] == '/':
@@ -74,26 +65,17 @@ def downld(handler,txt):
 
 	print videos
 	if videos == '':
-		#Msg_box = 
-		#handler.wfile.write(Msg_box)
 		exit(0)
-
-	
 	for v in videos:
-		#global t
 		v = Thread(target=video_download, args=(handler,v,videos))
 		v.start()
 	v.join()
-		
-
 	zipping_file(videos)
-	
 	mp3  = open('Music_File.zip', "r+")
 	handler.send_response(200)
 	handler.send_header('Content-Type', 'application/octet-stream')
 	handler.send_header('Content-Disposition', 'attachment; filename=Music_File.zip')
 	handler.end_headers()
-
 	handler.wfile.write(mp3.read())
 	mp3.close()
 
